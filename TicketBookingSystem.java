@@ -2,9 +2,33 @@ package online.ticketBooking;
 
 import java.util.List;
 import java.util.Scanner;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class TicketBookingSystem {
-     public static void main(String[] args) {
+
+    public static int getUserId(String username) {
+        int userId = -1; // Default value if user is not found
+        String query = "SELECT id FROM users WHERE username = ?";
+
+        try {
+            Connection conn = DatabaseConnection.getConnection(); // Use existing connection
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                userId = rs.getInt("id"); // Fetch userId
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return userId;
+    }
+
+    public static void main(String[] args) {
             Scanner scanner = new Scanner(System.in);
             UserService userService = new UserService();
             TicketService ticketService = new TicketService();
@@ -38,6 +62,7 @@ public class TicketBookingSystem {
 
                 if (userService.loginUser(username, password)) {
                     System.out.println("Login Successful! Welcome " + username);
+
                     // Proceed to booking system
                         // Display the tickets available
                     List<Ticket> tickets = ticketService.getAvailableTickets();
@@ -50,7 +75,24 @@ public class TicketBookingSystem {
                         }
                     }
 
-                 // for other functions like cancel tickets.
+                    System.out.println("Do you want to book a ticket? (yes/no)");
+                    String bookChoice = scanner.nextLine();
+
+                    if (bookChoice.equalsIgnoreCase("yes")) {
+                        System.out.print("Enter the Event ID to book: ");
+                        int ticketId = scanner.nextInt();
+
+                        // Assuming we have user ID from login (we can fetch it from DB)
+                        int userId = getUserId(username);
+
+                        if (ticketService.bookTicket(userId, ticketId)) {
+                            System.out.println("Ticket booked successfully!");
+                        } else {
+                            System.out.println("Booking failed! No seats available or invalid event ID.");
+                        }
+                    } else {
+                        System.out.println("leaving the ticket booking page");
+                    }
 
                 } else {
                     System.out.println("Invalid Username or Password!");

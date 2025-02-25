@@ -30,4 +30,38 @@ public class TicketService {
         return tickets;
     }
 
+    // ticket booking
+
+    public boolean bookTicket(int userId, int ticketId) {
+        String checkSeatsQuery = "SELECT available_seats FROM tickets WHERE id = ?";
+        String updateSeatsQuery = "UPDATE tickets SET available_seats = available_seats - 1 WHERE id = ? AND available_seats > 0";
+        String insertBookingQuery = "INSERT INTO bookings (user_id, ticket_id) VALUES (?, ?)";
+
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSeatsQuery);
+             PreparedStatement updateStmt = conn.prepareStatement(updateSeatsQuery);
+             PreparedStatement insertStmt = conn.prepareStatement(insertBookingQuery)) {
+
+            // Check available seats
+            checkStmt.setInt(1, ticketId);
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next() && rs.getInt("available_seats") > 0) {
+
+                // Update available seats
+                updateStmt.setInt(1, ticketId);
+                int updatedRows = updateStmt.executeUpdate();
+                if (updatedRows > 0) {
+
+                    // Insert booking record
+                    insertStmt.setInt(1, userId);
+                    insertStmt.setInt(2, ticketId);
+                    insertStmt.executeUpdate();
+
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
