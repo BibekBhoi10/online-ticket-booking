@@ -34,7 +34,7 @@ public class UserService {
             stmt.setString(1, username);
             stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
-            return rs.next(); // If a row is found, login is successful
+            return rs.next();
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
