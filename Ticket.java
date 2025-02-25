@@ -11,4 +11,16 @@ public class Ticket {
         this.eventName = eventName;
         this.availableSeats= availableSeats;
     }
+
+    public int getId(){
+        return id ;
+    }
+
+    public String getEventName(){
+        return eventName;
+    }
+
+    public int getAvailableSeats(){
+        return availableSeats;
+    }
 }
