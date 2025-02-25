@@ -5,19 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TicketService {
-    private Connection conn;
-
-    public TicketService(){
-        conn = DatabaseConnection.getConnection();
-    }
 
     // Get available tickets
     public List<Ticket> getAvailableTickets() {
         List<Ticket> tickets = new ArrayList<>();
         String query = "SELECT * FROM tickets WHERE available_seats > 0";
 
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            ResultSet rs = stmt.executeQuery();
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String eventName = rs.getString("event_name");
@@ -30,14 +27,14 @@ public class TicketService {
         return tickets;
     }
 
-    // ticket booking
-
+    // Ticket booking
     public boolean bookTicket(int userId, int ticketId) {
         String checkSeatsQuery = "SELECT available_seats FROM tickets WHERE id = ?";
         String updateSeatsQuery = "UPDATE tickets SET available_seats = available_seats - 1 WHERE id = ? AND available_seats > 0";
         String insertBookingQuery = "INSERT INTO bookings (user_id, ticket_id) VALUES (?, ?)";
 
-        try (PreparedStatement checkStmt = conn.prepareStatement(checkSeatsQuery);
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement(checkSeatsQuery);
              PreparedStatement updateStmt = conn.prepareStatement(updateSeatsQuery);
              PreparedStatement insertStmt = conn.prepareStatement(insertBookingQuery)) {
 
@@ -55,7 +52,6 @@ public class TicketService {
                     insertStmt.setInt(1, userId);
                     insertStmt.setInt(2, ticketId);
                     insertStmt.executeUpdate();
-
                     return true;
                 }
             }
@@ -65,13 +61,13 @@ public class TicketService {
         return false;
     }
 
-    // cancel Booking
-
+    // Cancel Booking
     public boolean cancelBooking(int userId, int ticketId) {
         String deleteBookingQuery = "DELETE FROM bookings WHERE user_id = ? AND ticket_id = ? LIMIT 1";
         String updateSeatsQuery = "UPDATE tickets SET available_seats = available_seats + 1 WHERE id = ?";
 
-        try (PreparedStatement deleteStmt = conn.prepareStatement(deleteBookingQuery);
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement deleteStmt = conn.prepareStatement(deleteBookingQuery);
              PreparedStatement updateStmt = conn.prepareStatement(updateSeatsQuery)) {
 
             deleteStmt.setInt(1, userId);
@@ -87,4 +83,26 @@ public class TicketService {
         return false;
     }
 
+    // Get user's booked tickets
+    public List<Ticket> getUserBookings(int userId) {
+        List<Ticket> bookedTickets = new ArrayList<>();
+        String query = "SELECT t.id, t.event_name FROM bookings b " +
+                "JOIN tickets t ON b.ticket_id = t.id WHERE b.user_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String eventName = rs.getString("event_name");
+                bookedTickets.add(new Ticket(id, eventName, 0));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return bookedTickets;
+    }
 }

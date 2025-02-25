@@ -5,28 +5,20 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
-    private static final String URL = "jdbc:mysql://localhost:3306/ticketBookingdb";
-    private static final String USER = "root";
-    private static final String PASSWORD = "Bhoi@2003";
-
-    private static Connection connection = null;
+    private static Connection conn;
 
     public static Connection getConnection() {
-        if (connection == null) { // Create connection only if it doesn't exist
-            try {
-                Class.forName("com.mysql.cj.jdbc.Driver"); // Load Driver
-                connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                System.out.println("Connected to MySQL successfully!");
-            } catch (ClassNotFoundException | SQLException e) {
-                e.printStackTrace();
-                System.out.println("Failed to connect to MySQL.");
+        try {
+            // If the connection is closed or null, create a new one
+            if (conn == null || conn.isClosed()) {
+                String url = "jdbc:mysql://localhost:3306/ticketBookingdb"; // Change database name if needed
+                String user = "root";  // Change to your database username
+                String password = "Bhoi@2003";  // Change to your database password
+                conn = DriverManager.getConnection(url, user, password);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return connection;
-    }
-
-    public static void main(String[] args) {
-        // Test connection
-        getConnection();
+        return conn;
     }
 }
