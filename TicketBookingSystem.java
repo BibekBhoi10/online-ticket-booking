@@ -29,13 +29,15 @@ public class TicketBookingSystem {
     }
 
     public static void main(String[] args) {
-            Scanner scanner = new Scanner(System.in);
-            UserService userService = new UserService();
-            TicketService ticketService = new TicketService();
+        Scanner scanner = new Scanner(System.in);
+        UserService userService = new UserService();
+        TicketService ticketService = new TicketService();
 
-            System.out.println("Welcome to Online Ticket Booking System");
+        while (true) { // Keep showing the menu until the user logs out
+            System.out.println("\nWelcome to Online Ticket Booking System");
             System.out.println("1. Register");
             System.out.println("2. Login");
+            System.out.println("3. Exit");
             System.out.print("Enter your choice: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline
@@ -53,6 +55,7 @@ public class TicketBookingSystem {
                 } else {
                     System.out.println("Registration Failed!");
                 }
+
             } else if (choice == 2) {
                 // User Login
                 System.out.print("Enter Username: ");
@@ -63,76 +66,85 @@ public class TicketBookingSystem {
                 if (userService.loginUser(username, password)) {
                     System.out.println("Login Successful! Welcome " + username);
 
-                    int userId = getUserId(username);
+                    int userId = getUserId(username); // Get user ID from DB
 
-                    while (true) {
+                    while (true) { // Keep showing the main menu after login
                         System.out.println("\nMain Menu:");
                         System.out.println("1. View Available Tickets");
                         System.out.println("2. Book a Ticket");
                         System.out.println("3. Cancel a Booking");
                         System.out.println("4. Logout");
                         System.out.print("Enter your choice: ");
-                        int action = scanner.nextInt();
+                        int option = scanner.nextInt();
                         scanner.nextLine(); // Consume newline
 
-                        if (action == 1) {
+                        if (option == 1) {
                             // Display available tickets
                             List<Ticket> tickets = ticketService.getAvailableTickets();
                             if (tickets.isEmpty()) {
                                 System.out.println("No tickets available.");
                             } else {
-                                System.out.println("Available tickets:");
+                                System.out.println("Available Tickets:");
                                 for (Ticket ticket : tickets) {
-                                    System.out.println("ID: " + ticket.getId() +
-                                            " | Event: " + ticket.getEventName() +
+                                    System.out.println("ID: " + ticket.getId() + " | Event: " + ticket.getEventName() +
                                             " | Available Seats: " + ticket.getAvailableSeats());
                                 }
                             }
-                        } else if (action == 2) {
-                            // Book a ticket
-                            System.out.print("Enter the Event ID to book: ");
+
+                        } else if (option == 2) {
+                            // Booking tickets
+                            System.out.print("Enter the Ticket ID: ");
                             int ticketId = scanner.nextInt();
+                            System.out.print("Enter number of seats: ");
+                            int seatCount = scanner.nextInt();
 
                             if (ticketService.bookTicket(userId, ticketId)) {
-                                System.out.println("Ticket booked successfully!");
+                                System.out.println(seatCount + " seats booked successfully!");
                             } else {
-                                System.out.println("Booking failed! No seats available or invalid event ID.");
+                                System.out.println("Booking failed! Not enough seats available.");
                             }
-                        } else if (action == 3) {
-                            // Cancel a booking
+
+                        } else if (option == 3) {
+                            // Cancel booking
+                            System.out.println("Your Booked Tickets:");
                             List<Ticket> bookedTickets = ticketService.getUserBookings(userId);
                             if (bookedTickets.isEmpty()) {
-                                System.out.println("You have no active bookings.");
+                                System.out.println("You have no booked tickets.");
                             } else {
-                                System.out.println("Your Booked Tickets:");
                                 for (Ticket ticket : bookedTickets) {
-                                    System.out.println("ID: " + ticket.getId() +
-                                            " | Event: " + ticket.getEventName());
+                                    System.out.println("ID: " + ticket.getId() + " | Event: " + ticket.getEventName());
                                 }
-
-                                System.out.print("Enter the Event ID to cancel: ");
+                                System.out.print("Enter the Ticket ID to cancel: ");
                                 int ticketId = scanner.nextInt();
 
                                 if (ticketService.cancelBooking(userId, ticketId)) {
-                                    System.out.println("Booking canceled successfully!");
+                                    System.out.println("Ticket cancellation successful!");
                                 } else {
                                     System.out.println("Cancellation failed! Invalid ticket ID.");
                                 }
                             }
-                        } else if (action == 4) {
+
+                        } else if (option == 4) {
                             System.out.println("Logging out...");
-                            break;
+                            break; // Exit inner menu loop, return to login/register menu
                         } else {
                             System.out.println("Invalid choice! Please try again.");
                         }
                     }
+
                 } else {
-                    System.out.println("Invalid Username or Password!");
+                    System.out.println("Invalid Username or Password! Try again.");
                 }
+
+            } else if (choice == 3) {
+                System.out.println("Exiting system...");
+                break; // Exit the program
             } else {
-                System.out.println("Invalid Choice! Exiting...");
+                System.out.println("Invalid Choice! Please enter a valid option.");
             }
-            scanner.close();
         }
+
+        scanner.close();
+    }
     }
 
