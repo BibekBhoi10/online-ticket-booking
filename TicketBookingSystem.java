@@ -1,11 +1,13 @@
 package online.ticketBooking;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class TicketBookingSystem {
      public static void main(String[] args) {
             Scanner scanner = new Scanner(System.in);
             UserService userService = new UserService();
+            TicketService ticketService = new TicketService();
 
             System.out.println("Welcome to Online Ticket Booking System");
             System.out.println("1. Register");
@@ -36,7 +38,20 @@ public class TicketBookingSystem {
 
                 if (userService.loginUser(username, password)) {
                     System.out.println("Login Successful! Welcome " + username);
-                    // Proceed to booking system (Next Step)
+                    // Proceed to booking system
+                        // Display the tickets available
+                    List<Ticket> tickets = ticketService.getAvailableTickets();
+                    if(tickets.isEmpty()){
+                        System.out.println("No tickets available");
+                    } else {
+                        System.out.println("Available tickets");
+                        for(Ticket ticket : tickets){
+                            System.out.println("Event: " + ticket.getEventName() + "Available seats: " + ticket.getAvailableSeats());
+                        }
+                    }
+
+                 // for other functions like cancel tickets.
+
                 } else {
                     System.out.println("Invalid Username or Password!");
                 }
