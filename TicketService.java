@@ -64,4 +64,28 @@ public class TicketService {
         }
         return false;
     }
+
+    // cancel Booking
+
+    public boolean cancelBooking(int userId, int ticketId) {
+        String deleteBookingQuery = "DELETE FROM bookings WHERE user_id = ? AND ticket_id = ? LIMIT 1";
+        String updateSeatsQuery = "UPDATE tickets SET available_seats = available_seats + 1 WHERE id = ?";
+
+        try (PreparedStatement deleteStmt = conn.prepareStatement(deleteBookingQuery);
+             PreparedStatement updateStmt = conn.prepareStatement(updateSeatsQuery)) {
+
+            deleteStmt.setInt(1, userId);
+            deleteStmt.setInt(2, ticketId);
+            if (deleteStmt.executeUpdate() > 0) {
+                updateStmt.setInt(1, ticketId);
+                updateStmt.executeUpdate();
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
 }
